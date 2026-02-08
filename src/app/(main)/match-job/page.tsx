@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Loader2, GitCompareArrows } from 'lucide-react';
 import { MatchResults } from '@/components/feature/match-results';
 import { useToast } from '@/hooks/use-toast';
+import { useFirebase, useUser } from '@/firebase';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 export default function MatchJobPage() {
   const [resumeText, setResumeText] = useState('');
@@ -17,6 +19,8 @@ export default function MatchJobPage() {
     useState<MatchResumeToJobDescriptionOutput | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const { firestore } = useFirebase();
+  const { user } = useUser();
 
   const handleMatch = () => {
     if (!resumeText.trim() || !jobDescription.trim()) {
@@ -28,12 +32,36 @@ export default function MatchJobPage() {
       return;
     }
     startTransition(async () => {
+      if (!firestore || !user) {
+        toast({ title: "Error", description: "You must be logged in to perform this action.", variant: 'destructive' });
+        return;
+      }
       try {
         const result = await matchResumeToJobDescription({
           resumeText,
           jobDescription,
         });
         setMatchResult(result);
+        
+        const matchRef = await addDoc(collection(firestore, 'jobMatches'), {
+          ...result,
+          userId: user.uid,
+          resumeText: resumeText,
+          jobDescription: jobDescription,
+          createdAt: serverTimestamp(),
+        });
+
+        await addDoc(collection(firestore, 'activityHistory'), {
+            userId: user.uid,
+            type: 'JOB_MATCH',
+            referenceId: matchRef.id,
+            details: {
+                matchPercentage: result.matchPercentage,
+                jobTitle: jobDescription.substring(0, 50) + '...',
+            },
+            createdAt: serverTimestamp(),
+        });
+
       } catch (error) {
         console.error('Match failed:', error);
         toast({

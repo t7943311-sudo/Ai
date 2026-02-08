@@ -22,26 +22,13 @@
       },
       "required": ["email", "createdAt"]
     },
-    "Resume": {
-      "title": "Resume",
-      "description": "Stores uploaded resume file information and text content.",
-      "type": "object",
-      "properties": {
-        "userId": { "type": "string", "description": "The ID of the user who owns this resume." },
-        "fileName": { "type": "string" },
-        "storagePath": { "type": "string", "description": "Path to the file in Firebase Storage." },
-        "textContent": { "type": "string", "description": "Parsed text content of the resume." },
-        "uploadedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["userId", "fileName", "storagePath", "uploadedAt"]
-    },
     "ResumeAnalysis": {
       "title": "Resume Analysis",
       "description": "Stores the results of an AI-powered resume analysis.",
       "type": "object",
       "properties": {
         "userId": { "type": "string" },
-        "resumeId": { "type": "string" },
+        "resumeText": { "type": "string" },
         "atsScore": { "type": "number" },
         "missingKeywords": { "type": "array", "items": { "type": "string" } },
         "skillGaps": { "type": "array", "items": { "type": "string" } },
@@ -52,7 +39,7 @@
         "overallFeedback": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["userId", "resumeId", "atsScore", "createdAt"]
+      "required": ["userId", "resumeText", "atsScore", "createdAt"]
     },
     "JobMatch": {
       "title": "Job Match",
@@ -60,7 +47,7 @@
       "type": "object",
       "properties": {
         "userId": { "type": "string" },
-        "resumeId": { "type": "string" },
+        "resumeText": { "type": "string" },
         "jobDescription": { "type": "string" },
         "matchPercentage": { "type": "number" },
         "missingSkills": { "type": "array", "items": { "type": "string" } },
@@ -68,7 +55,7 @@
         "roleSpecificFeedback": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["userId", "resumeId", "jobDescription", "matchPercentage", "createdAt"]
+      "required": ["userId", "resumeText", "jobDescription", "matchPercentage", "createdAt"]
     },
     "ActivityHistory": {
       "title": "Activity History",
@@ -81,7 +68,7 @@
         "details": { "type": "object", "properties": {}, "description": "Summary of the activity, e.g., { score: 82, resumeVersion: 'v3' }." },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["userId", "type", "referenceId", "createdAt"]
+      "required": ["userId", "type", "createdAt"]
     },
     "SupportMessage": {
       "title": "Support Message",
@@ -105,10 +92,6 @@
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/UserProfile" },
       "description": "Stores user profile information, keyed by user ID."
-    },
-    "/resumes/{resumeId}": {
-        "schema": { "$ref": "#/entities/Resume" },
-        "description": "Top-level collection for all resumes across all users. Document ID is unique."
     },
     "/resumeAnalyses/{analysisId}": {
         "schema": { "$ref": "#/entities/ResumeAnalysis" },

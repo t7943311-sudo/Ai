@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Loader2, PenSquare } from 'lucide-react';
 import { RewriteResults } from '@/components/feature/rewrite-results';
 import { useToast } from '@/hooks/use-toast';
+import { useFirebase, useUser } from '@/firebase';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 export default function RewritePage() {
   const [bulletPoints, setBulletPoints] = useState('');
@@ -17,6 +19,8 @@ export default function RewritePage() {
     useState<RewriteBulletPointsOutput | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const { firestore } = useFirebase();
+  const { user } = useUser();
 
   const handleRewrite = () => {
     const points = bulletPoints.split('\n').filter((p) => p.trim() !== '');
@@ -30,12 +34,27 @@ export default function RewritePage() {
     }
 
     startTransition(async () => {
+      if (!firestore || !user) {
+        toast({ title: "Error", description: "You must be logged in to perform this action.", variant: 'destructive' });
+        return;
+      }
       try {
         const result = await rewriteBulletPointsForImpact({
           bulletPoints: points,
           jobDescription: jobDescription || undefined,
         });
         setRewriteResult(result);
+        
+        await addDoc(collection(firestore, 'activityHistory'), {
+            userId: user.uid,
+            type: 'BULLET_REWRITE',
+            details: {
+                pointsCount: result.rewrittenBulletPoints.length,
+                jobContext: jobDescription ? jobDescription.substring(0, 50) + '...' : 'General improvement',
+            },
+            createdAt: serverTimestamp(),
+        });
+
       } catch (error) {
         console.error('Rewrite failed:', error);
         toast({

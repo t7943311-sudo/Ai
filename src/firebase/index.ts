@@ -6,14 +6,16 @@ import { FirebaseProvider, useFirebase } from './provider';
 import { FirebaseClientProvider } from './client-provider';
 import { useUser } from './auth/use-user';
 import { firebaseConfig } from './config';
+import { useCollection } from './firestore/use-collection';
+import { useDoc } from './firestore/use-doc';
 
 function initializeFirebase(): {
   app: FirebaseApp;
   auth: Auth;
   firestore: Firestore;
 } {
-  if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "PASTE_YOUR_API_KEY_HERE") {
-    throw new Error('Firebase configuration is missing or incomplete. Please update the placeholder values in src/firebase/config.ts');
+  if (!firebaseConfig.apiKey || firebaseConfig.apiKey.startsWith('AIzaSy')) {
+     throw new Error('Firebase configuration is missing or incomplete. Please update the placeholder values in src/firebase/config.ts');
   }
 
   const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
@@ -29,4 +31,6 @@ export {
   FirebaseProvider,
   useFirebase,
   useUser,
+  useCollection,
+  useDoc,
 };

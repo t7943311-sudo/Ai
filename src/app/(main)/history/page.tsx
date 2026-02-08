@@ -1,15 +1,63 @@
+'use client';
+
+import { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { useFirebase, useUser, useCollection } from '@/firebase';
+import { collection, query, where, orderBy, type DocumentData, type Query } from 'firebase/firestore';
+import { formatDistanceToNow } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
-const activities = [
-    { id: 1, type: "Analysis", details: "Resume v4 uploaded", result: "88/100", date: "2 days ago" },
-    { id: 2, type: "Job Match", details: "Software Engineer at TechCorp", result: "92%", date: "3 days ago" },
-    { id: 3, type: "Rewrite", details: "Rewrote 3 bullet points", result: "+5 impact", date: "5 days ago" },
-    { id: 4, type: "Analysis", details: "Resume v3 uploaded", result: "82/100", date: "1 week ago" },
-];
+type Activity = {
+  id: string;
+  type: 'RESUME_ANALYSIS' | 'JOB_MATCH' | 'BULLET_REWRITE';
+  details: any;
+  createdAt: { toDate: () => Date };
+};
 
 export default function HistoryPage() {
+  const { firestore } = useFirebase();
+  const { user } = useUser();
+
+  const activitiesQuery = useMemo(() => {
+      if (!firestore || !user) return null;
+      return query(
+          collection(firestore, 'activityHistory'),
+          where('userId', '==', user.uid),
+          orderBy('createdAt', 'desc')
+      );
+  }, [firestore, user]);
+
+  const { data: activities, loading } = useCollection<Activity>(activitiesQuery as Query<Activity> | null);
+
+  const renderDetails = (activity: Activity) => {
+    switch (activity.type) {
+      case 'RESUME_ANALYSIS':
+        return `Analyzed: ${activity.details.resumeTitle || 'Resume'}`;
+      case 'JOB_MATCH':
+        return `Matched against: ${activity.details.jobTitle || 'Job Description'}`;
+      case 'BULLET_REWRITE':
+        return `Rewrote ${activity.details.pointsCount} bullet point(s)`;
+      default:
+        return 'General activity';
+    }
+  };
+
+  const renderResult = (activity: Activity) => {
+    switch (activity.type) {
+      case 'RESUME_ANALYSIS':
+        return `${activity.details.score}/100`;
+      case 'JOB_MATCH':
+        return `${activity.details.matchPercentage}%`;
+      case 'BULLET_REWRITE':
+        return `+${activity.details.pointsCount} improved`;
+      default:
+        return '-';
+    }
+  };
+
   return (
     <div className="space-y-4">
       <header>
@@ -28,28 +76,47 @@ export default function HistoryPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {activities.map((activity) => (
+              {loading && (
+                <>
+                  {[...Array(5)].map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-4/5" /></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-5 w-24 ml-auto" /></TableCell>
+                    </TableRow>
+                  ))}
+                </>
+              )}
+              {!loading && activities && activities.length > 0 && activities.map((activity) => (
                 <TableRow key={activity.id}>
                   <TableCell>
                      <Badge
                         variant={
-                          activity.type === 'Analysis'
+                          activity.type === 'RESUME_ANALYSIS'
                             ? 'default'
-                            : activity.type === 'Job Match'
+                            : activity.type === 'JOB_MATCH'
                             ? 'secondary'
                             : 'outline'
                         }
                       >
-                        {activity.type}
+                        {activity.type === 'RESUME_ANALYSIS' ? 'Analysis' : activity.type === 'JOB_MATCH' ? 'Job Match' : 'Rewrite'}
                       </Badge>
                   </TableCell>
-                  <TableCell className="font-medium">{activity.details}</TableCell>
-                  <TableCell className="text-right">{activity.result}</TableCell>
-                  <TableCell className="text-right text-muted-foreground">{activity.date}</TableCell>
+                  <TableCell className="font-medium">{renderDetails(activity)}</TableCell>
+                  <TableCell className="text-right">{renderResult(activity)}</TableCell>
+                  <TableCell className="text-right text-muted-foreground">
+                    {activity.createdAt ? `${formatDistanceToNow(activity.createdAt.toDate())} ago` : ''}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
+           {!loading && (!activities || activities.length === 0) && (
+              <div className="text-center p-8 text-muted-foreground">
+                No activity yet. Analyze a resume or match a job to get started!
+              </div>
+            )}
         </CardContent>
       </Card>
     </div>

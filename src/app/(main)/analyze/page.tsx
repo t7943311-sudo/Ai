@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Loader2, Wand2 } from 'lucide-react';
 import { AnalysisResults } from '@/components/feature/analysis-results';
 import { useToast } from '@/hooks/use-toast';
+import { useFirebase, useUser } from '@/firebase';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 export default function AnalyzePage() {
   const [resumeText, setResumeText] = useState('');
@@ -16,6 +18,8 @@ export default function AnalyzePage() {
     useState<AnalyzeResumeAndProvideFeedbackOutput | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const { firestore } = useFirebase();
+  const { user } = useUser();
 
   const handleAnalyze = () => {
     if (!resumeText.trim()) {
@@ -27,9 +31,32 @@ export default function AnalyzePage() {
       return;
     }
     startTransition(async () => {
+       if (!firestore || !user) {
+        toast({ title: "Error", description: "You must be logged in to perform this action.", variant: 'destructive' });
+        return;
+      }
       try {
         const result = await analyzeResumeAndProvideFeedback({ resumeText });
         setAnalysisResult(result);
+        
+        const analysisRef = await addDoc(collection(firestore, 'resumeAnalyses'), {
+          ...result,
+          userId: user.uid,
+          resumeText: resumeText,
+          createdAt: serverTimestamp(),
+        });
+
+        await addDoc(collection(firestore, 'activityHistory'), {
+          userId: user.uid,
+          type: 'RESUME_ANALYSIS',
+          referenceId: analysisRef.id,
+          details: {
+            score: result.atsScore,
+            resumeTitle: resumeText.substring(0, 50) + '...',
+          },
+          createdAt: serverTimestamp(),
+        });
+
       } catch (error) {
         console.error('Analysis failed:', error);
         toast({
