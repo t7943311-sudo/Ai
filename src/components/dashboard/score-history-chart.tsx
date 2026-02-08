@@ -4,28 +4,14 @@ import { TrendingUp } from 'lucide-react';
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
 
-const chartData = [
-  { date: '2024-01', score: 65 },
-  { date: '2024-02', score: 68 },
-  { date: '2024-03', score: 72 },
-  { date: '2024-04', score: 70 },
-  { date: '2024-05', score: 75 },
-  { date: '2024-06', score: 78 },
-  { date: '2024-07', score: 82 },
-];
+interface ScoreHistoryChartProps {
+  data: { date: string; score: number }[];
+}
 
 const chartConfig = {
   score: {
@@ -34,12 +20,12 @@ const chartConfig = {
   },
 };
 
-export function ScoreHistoryChart() {
+export function ScoreHistoryChart({ data }: ScoreHistoryChartProps) {
   return (
     <ChartContainer config={chartConfig} className="h-[250px] w-full">
       <LineChart
         accessibilityLayer
-        data={chartData}
+        data={data}
         margin={{
           left: 12,
           right: 12,
@@ -59,9 +45,11 @@ export function ScoreHistoryChart() {
           tickLine={false}
           axisLine={false}
           tickMargin={8}
-          tickFormatter={(value) => value.slice(0, 7)}
         />
-        <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+        <ChartTooltip
+          cursor={false}
+          content={<ChartTooltipContent hideLabel />}
+        />
         <Line
           dataKey="score"
           type="monotone"
