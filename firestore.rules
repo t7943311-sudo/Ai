@@ -1,0 +1,49 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check ownership
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // Users can read and update their own profile.
+    // New users can create their own profile.
+    match /users/{userId} {
+      allow read, update: if isOwner(userId);
+      allow create: if request.auth != null;
+    }
+
+    // A user can manage their own resumes.
+    match /resumes/{resumeId} {
+      allow read, delete: if isOwner(resource.data.userId);
+      allow create: if isOwner(request.resource.data.userId);
+      // Disallow updates to the text content once created to maintain integrity.
+      allow update: if isOwner(request.resource.data.userId) && request.resource.data.textContent == resource.data.textContent;
+    }
+
+    // A user can manage their own resume analyses.
+    match /resumeAnalyses/{analysisId} {
+        allow read, delete: if isOwner(resource.data.userId);
+        allow create: if isOwner(request.resource.data.userId);
+        // Analyses are immutable once created.
+        allow update: if false;
+    }
+
+    // A user can manage their own job matches.
+    match /jobMatches/{jobMatchId} {
+        allow read, delete: if isOwner(resource.data.userId);
+        allow create: if isOwner(request.resource.data.userId);
+        // Job matches are immutable once created.
+        allow update: if false;
+    }
+
+    // A user can manage their own activity history.
+    match /activityHistory/{activityId} {
+        allow read, delete: if isOwner(resource.data.userId);
+        allow create: if isOwner(request.resource.data.userId);
+        // History is immutable.
+        allow update: if false;
+    }
+  }
+}

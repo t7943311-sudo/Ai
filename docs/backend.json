@@ -1,0 +1,102 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user profile information.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email", "description": "User's email address." },
+        "name": { "type": "string", "description": "User's display name." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of account creation." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp of last profile update." }
+      },
+      "required": ["email", "createdAt"]
+    },
+    "Resume": {
+      "title": "Resume",
+      "description": "Stores uploaded resume file information and text content.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The ID of the user who owns this resume." },
+        "fileName": { "type": "string" },
+        "storagePath": { "type": "string", "description": "Path to the file in Firebase Storage." },
+        "textContent": { "type": "string", "description": "Parsed text content of the resume." },
+        "uploadedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "fileName", "storagePath", "uploadedAt"]
+    },
+    "ResumeAnalysis": {
+      "title": "Resume Analysis",
+      "description": "Stores the results of an AI-powered resume analysis.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "resumeId": { "type": "string" },
+        "atsScore": { "type": "number" },
+        "missingKeywords": { "type": "array", "items": { "type": "string" } },
+        "skillGaps": { "type": "array", "items": { "type": "string" } },
+        "formattingIssues": { "type": "array", "items": { "type": "string" } },
+        "bulletPointImprovements": { "type": "array", "items": { "type": "string" } },
+        "roleSpecificSuggestions": { "type": "array", "items": { "type": "string" } },
+        "summaryRewrite": { "type": "string" },
+        "overallFeedback": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "resumeId", "atsScore", "createdAt"]
+    },
+    "JobMatch": {
+      "title": "Job Match",
+      "description": "Stores the results of matching a resume against a job description.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "resumeId": { "type": "string" },
+        "jobDescription": { "type": "string" },
+        "matchPercentage": { "type": "number" },
+        "missingSkills": { "type": "array", "items": { "type": "string" } },
+        "resumeImprovementSuggestions": { "type": "array", "items": { "type": "string" } },
+        "roleSpecificFeedback": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "resumeId", "jobDescription", "matchPercentage", "createdAt"]
+    },
+    "ActivityHistory": {
+      "title": "Activity History",
+      "description": "A log of user activities within the app.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["RESUME_ANALYSIS", "JOB_MATCH", "BULLET_REWRITE"] },
+        "referenceId": { "type": "string", "description": "ID of the related document (e.g., analysisId, jobMatchId)." },
+        "details": { "type": "object", "properties": {}, "description": "Summary of the activity, e.g., { score: 82, resumeVersion: 'v3' }." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "type", "referenceId", "createdAt"]
+    }
+  },
+  "auth": {
+    "providers": ["email", "google.com"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Stores user profile information, keyed by user ID."
+    },
+    "/resumes/{resumeId}": {
+        "schema": { "$ref": "#/entities/Resume" },
+        "description": "Top-level collection for all resumes across all users. Document ID is unique."
+    },
+    "/resumeAnalyses/{analysisId}": {
+        "schema": { "$ref": "#/entities/ResumeAnalysis" },
+        "description": "Top-level collection for all resume analyses."
+    },
+    "/jobMatches/{jobMatchId}": {
+        "schema": { "$ref": "#/entities/JobMatch" },
+        "description": "Top-level collection for all job matches."
+    },
+    "/activityHistory/{activityId}": {
+        "schema": { "$ref": "#/entities/ActivityHistory" },
+        "description": "Top-level collection for all user activities."
+    }
+  }
+}
