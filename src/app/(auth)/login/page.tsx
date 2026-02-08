@@ -54,9 +54,10 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = () => {
     startTransition(async () => {
-      if (!auth) return;
+      if (!auth || !firestore) return;
       try {
-        await processGoogleSignIn(auth);
+        await processGoogleSignIn(auth, firestore);
+        // The useAuthRedirect hook will handle the redirect to /dashboard
       } catch (error) {
         toast({
           variant: 'destructive',

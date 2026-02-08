@@ -3,7 +3,7 @@
 import {
   type Auth,
   GoogleAuthProvider,
-  signInWithRedirect,
+  signInWithPopup,
   type User,
 } from 'firebase/auth';
 import {
@@ -61,11 +61,13 @@ export async function upsertUserProfile(firestore: Firestore, user: User) {
 }
 
 /**
- * Initiates the Google sign-in process by redirecting to Google's sign-in page.
- * The result is handled in the `AuthLayout`.
+ * Initiates the Google sign-in process using a popup.
+ * On success, it creates/updates the user profile in Firestore.
  * @param auth - The Firebase Auth instance.
+ * @param firestore - The Firebase Firestore instance.
  */
-export async function processGoogleSignIn(auth: Auth) {
+export async function processGoogleSignIn(auth: Auth, firestore: Firestore) {
   const provider = new GoogleAuthProvider();
-  await signInWithRedirect(auth, provider);
+  const result = await signInWithPopup(auth, provider);
+  await upsertUserProfile(firestore, result.user);
 }
