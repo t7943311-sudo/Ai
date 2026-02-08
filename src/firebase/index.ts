@@ -14,7 +14,7 @@ function initializeFirebase(): {
   auth: Auth;
   firestore: Firestore;
 } {
-  if (!firebaseConfig.apiKey || firebaseConfig.apiKey.startsWith('AIzaSy')) {
+  if (!firebaseConfig.apiKey) {
      throw new Error('Firebase configuration is missing or incomplete. Please update the placeholder values in src/firebase/config.ts');
   }
 
