@@ -34,7 +34,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, ChromeIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -64,15 +64,35 @@ export default function LoginPage() {
         const user = userCredential.user;
 
         const userRef = doc(firestore, 'users', user.uid);
-        await setDoc(userRef, {
-          name: user.displayName,
-          email: user.email,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-          settings: {
-            theme: 'system',
-          }
-        }, { merge: true });
+        const docSnap = await getDoc(userRef);
+
+        if (docSnap.exists() && docSnap.data()?.settings?.theme) {
+          localStorage.setItem('theme', docSnap.data().settings.theme);
+          await setDoc(
+            userRef,
+            {
+              name: user.displayName,
+              email: user.email,
+              updatedAt: serverTimestamp(),
+            },
+            { merge: true }
+          );
+        } else {
+          localStorage.setItem('theme', 'system');
+          await setDoc(
+            userRef,
+            {
+              name: user.displayName,
+              email: user.email,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+              settings: {
+                theme: 'system',
+              },
+            },
+            { merge: true }
+          );
+        }
 
         router.push('/dashboard');
       } catch (error) {
@@ -87,9 +107,19 @@ export default function LoginPage() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     startTransition(async () => {
-      if (!auth) return;
+      if (!auth || !firestore) return;
       try {
-        await signInWithEmailAndPassword(auth, values.email, values.password);
+        const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
+        const user = userCredential.user;
+
+        const userRef = doc(firestore, 'users', user.uid);
+        const docSnap = await getDoc(userRef);
+        if (docSnap.exists() && docSnap.data()?.settings?.theme) {
+          localStorage.setItem('theme', docSnap.data().settings.theme);
+        } else {
+          localStorage.setItem('theme', 'system');
+        }
+
         router.push('/dashboard');
       } catch (error) {
         toast({

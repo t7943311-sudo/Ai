@@ -10,7 +10,7 @@ import {
   GoogleAuthProvider,
   updateProfile,
 } from 'firebase/auth';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, serverTimestamp, setDoc, getDoc } from 'firebase/firestore';
 import { useFirebase } from '@/firebase';
 import { getAuthErrorMessage } from '@/lib/firebase-error-handler';
 
@@ -69,15 +69,35 @@ export default function SignupPage() {
         const user = userCredential.user;
 
         const userRef = doc(firestore, 'users', user.uid);
-        await setDoc(userRef, {
-          name: user.displayName,
-          email: user.email,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-          settings: {
-            theme: 'system',
-          }
-        }, { merge: true });
+        const docSnap = await getDoc(userRef);
+
+        if (docSnap.exists() && docSnap.data()?.settings?.theme) {
+          localStorage.setItem('theme', docSnap.data().settings.theme);
+          await setDoc(
+            userRef,
+            {
+              name: user.displayName,
+              email: user.email,
+              updatedAt: serverTimestamp(),
+            },
+            { merge: true }
+          );
+        } else {
+          localStorage.setItem('theme', 'system');
+          await setDoc(
+            userRef,
+            {
+              name: user.displayName,
+              email: user.email,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+              settings: {
+                theme: 'system',
+              },
+            },
+            { merge: true }
+          );
+        }
 
         router.push('/dashboard');
       } catch (error) {
@@ -115,6 +135,8 @@ export default function SignupPage() {
             theme: 'system',
           }
         });
+        
+        localStorage.setItem('theme', 'system');
 
         router.push('/dashboard');
       } catch (error) {
