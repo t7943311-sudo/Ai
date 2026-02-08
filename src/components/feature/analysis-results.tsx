@@ -9,12 +9,14 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '../ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 interface AnalysisResultsProps {
   result: AnalyzeResumeAndProvideFeedbackOutput;
+  scrollAreaClassName?: string;
 }
 
-export function AnalysisResults({ result }: AnalysisResultsProps) {
+export function AnalysisResults({ result, scrollAreaClassName }: AnalysisResultsProps) {
   const feedbackSections = [
     { title: 'Missing Keywords', content: result.missingKeywords },
     { title: 'Skill Gaps', content: result.skillGaps },
@@ -24,8 +26,8 @@ export function AnalysisResults({ result }: AnalysisResultsProps) {
   ];
 
   return (
-    <ScrollArea className="h-[calc(100vh-12rem)]">
-    <div className="space-y-4 pr-4">
+    <ScrollArea className={cn('h-[calc(100vh-12rem)]', scrollAreaClassName)}>
+    <div className="space-y-4 p-4">
       <Card>
         <CardHeader>
           <CardTitle>ATS Score: {result.atsScore}/100</CardTitle>

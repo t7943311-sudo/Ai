@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { FileScan, GitCompareArrows, PenSquare, GaugeCircle, Wand2, ShieldCheck, Star, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { useUser } from '@/firebase';
+import { InteractiveAnalyzer } from '@/components/feature/interactive-analyzer';
 
 const features = [
   {
@@ -165,8 +166,25 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Interactive Analyzer Section */}
+        <section id="try-it" className="w-full py-12 md:py-24 lg:py-32">
+            <div className="container px-4 md:px-6">
+                <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+                <div className="space-y-2">
+                    <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
+                    Get Instant Feedback
+                    </h2>
+                    <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                    Don't wait. See how your resume stacks up right now. Get a free analysis and discover key areas for improvement in seconds.
+                    </p>
+                </div>
+                </div>
+                <InteractiveAnalyzer />
+            </div>
+        </section>
+
         {/* See the Transformation Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32">
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/40">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -204,7 +222,7 @@ export default function LandingPage() {
         </section>
 
         {/* Testimonials Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/40">
+        <section className="w-full py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
              <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
