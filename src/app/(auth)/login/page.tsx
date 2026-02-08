@@ -88,6 +88,7 @@ export default function LoginPage() {
               updatedAt: serverTimestamp(),
               settings: {
                 theme: 'system',
+                onboardingCompleted: false,
               },
             },
             { merge: true }

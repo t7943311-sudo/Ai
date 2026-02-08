@@ -24,12 +24,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ScoreHistoryChart } from '@/components/dashboard/score-history-chart';
-import { useCollection, useFirebase, useUser } from '@/firebase';
-import { collection, query, where, type Query } from 'firebase/firestore';
+import { useCollection, useFirebase, useUser, useDoc } from '@/firebase';
+import { collection, query, where, type Query, doc, setDoc, type DocumentReference } from 'firebase/firestore';
 import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format, formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
+import { OnboardingGuide } from '@/components/dashboard/onboarding-guide';
 
 type ActivityDoc = {
   id: string;
@@ -45,6 +46,16 @@ type ResumeAnalysisDoc = {
     missingKeywords: string[];
     createdAt: { toDate: () => Date };
 };
+
+type UserProfile = {
+    id: string;
+    name: string;
+    settings?: {
+      theme?: 'light' | 'dark' | 'system';
+      targetRole?: string;
+      onboardingCompleted?: boolean;
+    };
+  };
 
 
 export default function DashboardPage() {
@@ -69,6 +80,12 @@ export default function DashboardPage() {
         );
     }, [firestore, user]);
 
+    const userProfileRef = useMemo(() => {
+        if (!firestore || !user) return null;
+        return doc(firestore, 'users', user.uid);
+    }, [firestore, user]);
+
+    const { data: userProfile, loading: userProfileLoading } = useDoc<UserProfile>(userProfileRef as DocumentReference<UserProfile> | null);
     const { data: allActivities, loading: activitiesLoading } = useCollection<ActivityDoc>(activitiesQuery as Query<ActivityDoc> | null);
     const { data: allAnalyses, loading: analysesLoading } = useCollection<ResumeAnalysisDoc>(analysesQuery as Query<ResumeAnalysisDoc> | null);
 
@@ -87,11 +104,22 @@ export default function DashboardPage() {
     }, [allAnalyses]);
 
 
-    const loading = activitiesLoading || analysesLoading;
+    const loading = activitiesLoading || analysesLoading || userProfileLoading;
 
     const latestAnalysis = useMemo(() => analyses?.[0], [analyses]);
     const latestJobMatch = useMemo(() => activities?.find(a => a.type === 'JOB_MATCH'), [activities]);
     const latestRewrite = useMemo(() => activities?.find(a => a.type === 'BULLET_REWRITE'), [activities]);
+
+    const handleCompleteOnboarding = () => {
+        if (!userProfileRef) return;
+        setDoc(userProfileRef, {
+            settings: {
+                onboardingCompleted: true
+            }
+        }, { merge: true });
+    };
+    
+    const showOnboarding = !loading && userProfile && !userProfile.settings?.onboardingCompleted;
 
     const stats = [
         {
@@ -161,7 +189,8 @@ export default function DashboardPage() {
     };
 
     return (
-        <>
+        <div className="flex flex-col gap-4 md:gap-8">
+            {showOnboarding && <OnboardingGuide onComplete={handleCompleteOnboarding} name={userProfile?.name || 'there'} />}
             <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
                 {stats.map((stat) => (
                     <Card key={stat.title}>
@@ -270,6 +299,6 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
             </div>
-        </>
+        </div>
     );
 }

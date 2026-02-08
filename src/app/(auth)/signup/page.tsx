@@ -93,6 +93,7 @@ export default function SignupPage() {
               updatedAt: serverTimestamp(),
               settings: {
                 theme: 'system',
+                onboardingCompleted: false,
               },
             },
             { merge: true }
@@ -133,6 +134,7 @@ export default function SignupPage() {
           updatedAt: serverTimestamp(),
           settings: {
             theme: 'system',
+            onboardingCompleted: false,
           }
         });
         
