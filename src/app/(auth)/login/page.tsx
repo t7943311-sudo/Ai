@@ -54,10 +54,9 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = () => {
     startTransition(async () => {
-      if (!auth || !firestore) return;
+      if (!auth) return;
       try {
-        await processGoogleSignIn(auth, firestore);
-        router.push('/dashboard');
+        await processGoogleSignIn(auth);
       } catch (error) {
         toast({
           variant: 'destructive',

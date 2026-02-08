@@ -3,7 +3,7 @@
 import {
   type Auth,
   GoogleAuthProvider,
-  signInWithPopup,
+  signInWithRedirect,
   type User,
 } from 'firebase/auth';
 import {
@@ -15,56 +15,57 @@ import {
 } from 'firebase/firestore';
 
 /**
- * Handles the Google sign-in process, creating or updating the user profile in Firestore,
- * and setting the theme in localStorage.
- * @param auth - The Firebase Auth instance.
+ * Creates or updates a user profile in Firestore. This is called after any
+ * successful sign-in or sign-up.
  * @param firestore - The Firebase Firestore instance.
- * @returns The user object from the user credential.
- * @throws An error if the sign-in fails.
+ * @param user - The Firebase User object.
  */
-export async function processGoogleSignIn(
-  auth: Auth,
-  firestore: Firestore
-): Promise<User> {
-    const provider = new GoogleAuthProvider();
-    const userCredential = await signInWithPopup(auth, provider);
-    const user = userCredential.user;
+export async function upsertUserProfile(firestore: Firestore, user: User) {
+  const userRef = doc(firestore, 'users', user.uid);
+  const docSnap = await getDoc(userRef);
 
-    const userRef = doc(firestore, 'users', user.uid);
-    const docSnap = await getDoc(userRef);
-
-    if (docSnap.exists()) {
-      // Existing user
-      const userData = docSnap.data();
-      if (userData?.settings?.theme) {
-        localStorage.setItem('theme', userData.settings.theme);
-      }
-      await setDoc(
-        userRef,
-        {
-          name: user.displayName,
-          email: user.email,
-          updatedAt: serverTimestamp(),
-        },
-        { merge: true }
-      );
-    } else {
-      // New user
-      localStorage.setItem('theme', 'system');
-      await setDoc(
-        userRef,
-        {
-          name: user.displayName,
-          email: user.email,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-          settings: {
-            theme: 'system',
-            onboardingCompleted: false,
-          },
-        },
-        { merge: true }
-      );
+  if (docSnap.exists()) {
+    // Existing user
+    const userData = docSnap.data();
+    if (userData?.settings?.theme) {
+      localStorage.setItem('theme', userData.settings.theme);
     }
-    return user;
+    // Update name/email from provider and timestamp
+    await setDoc(
+      userRef,
+      {
+        name: user.displayName,
+        email: user.email,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+  } else {
+    // New user
+    localStorage.setItem('theme', 'system');
+    await setDoc(
+      userRef,
+      {
+        name: user.displayName,
+        email: user.email,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        settings: {
+          theme: 'system',
+          onboardingCompleted: false,
+        },
+      },
+      { merge: true }
+    );
+  }
+}
+
+/**
+ * Initiates the Google sign-in process by redirecting to Google's sign-in page.
+ * The result is handled in the `AuthLayout`.
+ * @param auth - The Firebase Auth instance.
+ */
+export async function processGoogleSignIn(auth: Auth) {
+  const provider = new GoogleAuthProvider();
+  await signInWithRedirect(auth, provider);
 }
