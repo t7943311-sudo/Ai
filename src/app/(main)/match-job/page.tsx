@@ -11,6 +11,7 @@ import { MatchResults } from '@/components/feature/match-results';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase, useUser } from '@/firebase';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { ResumeInput } from '@/components/feature/resume-input';
 
 export default function MatchJobPage() {
   const [resumeText, setResumeText] = useState('');
@@ -79,20 +80,28 @@ export default function MatchJobPage() {
       <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-1">
         <Card>
           <CardHeader>
-            <CardTitle>Job Description Matcher</CardTitle>
+            <CardTitle>Your Resume</CardTitle>
             <CardDescription>
-              Compare your resume against a job description to see your match
-              score and get tailored feedback.
+              Paste your resume or upload a file.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResumeInput
+                value={resumeText}
+                onTextChange={setResumeText}
+                disabled={isPending}
+                placeholder="Paste or upload your resume..."
+              />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Job Description</CardTitle>
+            <CardDescription>
+              Paste the job description to compare against.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Textarea
-              placeholder="Paste your resume text here..."
-              className="min-h-[250px] font-mono text-sm"
-              value={resumeText}
-              onChange={(e) => setResumeText(e.target.value)}
-              disabled={isPending}
-            />
             <Textarea
               placeholder="Paste the job description here..."
               className="min-h-[250px] font-mono text-sm"
@@ -100,16 +109,16 @@ export default function MatchJobPage() {
               onChange={(e) => setJobDescription(e.target.value)}
               disabled={isPending}
             />
-            <Button onClick={handleMatch} disabled={isPending} className="w-full">
-              {isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <GitCompareArrows className="mr-2 h-4 w-4" />
-              )}
-              Match to Job
-            </Button>
           </CardContent>
         </Card>
+        <Button onClick={handleMatch} disabled={isPending} className="w-full">
+          {isPending ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <GitCompareArrows className="mr-2 h-4 w-4" />
+          )}
+          Match to Job
+        </Button>
       </div>
       <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
         {isPending ? (
@@ -131,7 +140,7 @@ export default function MatchJobPage() {
                 Your match results will appear here
               </h3>
               <p className="mt-2 text-sm">
-                Paste your info and click &quot;Match to Job&quot; to begin.
+                Provide your info and click &quot;Match to Job&quot; to begin.
               </p>
             </div>
           </Card>

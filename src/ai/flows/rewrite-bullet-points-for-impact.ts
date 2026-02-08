@@ -14,6 +14,7 @@ import {z} from 'genkit';
 const RewriteBulletPointsInputSchema = z.object({
   bulletPoints: z.array(z.string()).describe('The bullet points to rewrite.'),
   jobDescription: z.string().optional().describe('Optional job description for context.'),
+  resumeText: z.string().optional().describe("The full text of the user's resume for context."),
 });
 export type RewriteBulletPointsInput = z.infer<typeof RewriteBulletPointsInputSchema>;
 
@@ -31,7 +32,29 @@ const prompt = ai.definePrompt({
   name: 'rewriteBulletPointsPrompt',
   input: {schema: RewriteBulletPointsInputSchema},
   output: {schema: RewriteBulletPointsOutputSchema},
-  prompt: `You are an expert resume writer specializing in optimizing bullet points for Applicant Tracking Systems (ATS) and recruiter readability.\n\n  Rewrite the following bullet points to be more impact-focused, highlighting accomplishments and quantifying contributions whenever possible. Focus on clarity, measurable impact, and recruiter readability. Avoid generic advice and be precise and actionable.\n\n  Job Description (if provided): {{{jobDescription}}}\n\n  Original Bullet Points:\n  {{#each bulletPoints}}\n  - {{{this}}}\n  {{/each}}\n\n  Return the rewritten bullet points as an array of strings and provide overall feedback on the rewritten bullet points.\n\n  Ensure the response is valid JSON.\n  `,
+  prompt: `You are an expert resume writer specializing in optimizing bullet points for Applicant Tracking Systems (ATS) and recruiter readability.
+
+Rewrite the following bullet points to be more impact-focused, highlighting accomplishments and quantifying contributions whenever possible. Focus on clarity, measurable impact, and recruiter readability. Avoid generic advice and be precise and actionable.
+
+{{#if resumeText}}
+Use the following resume as additional context:
+---
+{{{resumeText}}}
+---
+{{/if}}
+
+Job Description (if provided):
+{{{jobDescription}}}
+
+Original Bullet Points:
+{{#each bulletPoints}}
+- {{{this}}}
+{{/each}}
+
+Return the rewritten bullet points as an array of strings and provide overall feedback on the rewritten bullet points.
+
+Ensure the response is valid JSON.
+  `,
 });
 
 const rewriteBulletPointsFlow = ai.defineFlow(

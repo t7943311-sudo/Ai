@@ -4,13 +4,13 @@ import { useState, useTransition } from 'react';
 import { analyzeResumeAndProvideFeedback } from '@/ai/flows/analyze-resume-and-provide-feedback';
 import type { AnalyzeResumeAndProvideFeedbackOutput } from '@/ai/flows/analyze-resume-and-provide-feedback';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader2, Wand2 } from 'lucide-react';
 import { AnalysisResults } from '@/components/feature/analysis-results';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase, useUser } from '@/firebase';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { ResumeInput } from '@/components/feature/resume-input';
 
 export default function AnalyzePage() {
   const [resumeText, setResumeText] = useState('');
@@ -25,7 +25,7 @@ export default function AnalyzePage() {
     if (!resumeText.trim()) {
       toast({
         title: 'Error',
-        description: 'Please paste your resume content before analyzing.',
+        description: 'Please paste or upload your resume before analyzing.',
         variant: 'destructive',
       });
       return;
@@ -52,7 +52,7 @@ export default function AnalyzePage() {
           referenceId: analysisRef.id,
           details: {
             score: result.atsScore,
-            resumeTitle: resumeText.substring(0, 50) + '...',
+            resumeTitle: `Uploaded or pasted resume`,
           },
           createdAt: serverTimestamp(),
         });
@@ -76,17 +76,16 @@ export default function AnalyzePage() {
           <CardHeader>
             <CardTitle>Resume Analyzer</CardTitle>
             <CardDescription>
-              Paste your resume below to get an instant analysis of its
+              Paste your resume or upload a file to get an instant analysis of its
               strengths and weaknesses.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Textarea
-              placeholder="Paste your full resume text here..."
-              className="min-h-[400px] font-mono text-sm"
+            <ResumeInput
               value={resumeText}
-              onChange={(e) => setResumeText(e.target.value)}
+              onTextChange={setResumeText}
               disabled={isPending}
+              placeholder="Paste your full resume text here..."
             />
             <Button
               onClick={handleAnalyze}
@@ -123,7 +122,7 @@ export default function AnalyzePage() {
                 Your analysis will appear here
               </h3>
               <p className="mt-2 text-sm">
-                Paste your resume on the left and click &quot;Analyze Resume&quot; to begin.
+                Paste or upload your resume and click &quot;Analyze Resume&quot; to begin.
               </p>
             </div>
           </Card>

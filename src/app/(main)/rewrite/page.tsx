@@ -11,10 +11,13 @@ import { RewriteResults } from '@/components/feature/rewrite-results';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase, useUser } from '@/firebase';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { ResumeInput } from '@/components/feature/resume-input';
+import { Label } from '@/components/ui/label';
 
 export default function RewritePage() {
   const [bulletPoints, setBulletPoints] = useState('');
   const [jobDescription, setJobDescription] = useState('');
+  const [resumeContext, setResumeContext] = useState('');
   const [rewriteResult, setRewriteResult] =
     useState<RewriteBulletPointsOutput | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -42,6 +45,7 @@ export default function RewritePage() {
         const result = await rewriteBulletPointsForImpact({
           bulletPoints: points,
           jobDescription: jobDescription || undefined,
+          resumeText: resumeContext || undefined,
         });
         setRewriteResult(result);
         
@@ -50,7 +54,7 @@ export default function RewritePage() {
             type: 'BULLET_REWRITE',
             details: {
                 pointsCount: result.rewrittenBulletPoints.length,
-                jobContext: jobDescription ? jobDescription.substring(0, 50) + '...' : 'General improvement',
+                jobContext: jobDescription ? 'With job description' : 'General improvement',
             },
             createdAt: serverTimestamp(),
         });
@@ -74,25 +78,43 @@ export default function RewritePage() {
           <CardHeader>
             <CardTitle>Bullet Point Rewriter</CardTitle>
             <CardDescription>
-              Enter your bullet points to make them more impactful. Add a job
+              Enter bullet points to make them more impactful. Add your resume and a job
               description for tailored suggestions.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Textarea
-              placeholder="Enter each bullet point on a new line..."
-              className="min-h-[200px] font-mono text-sm"
-              value={bulletPoints}
-              onChange={(e) => setBulletPoints(e.target.value)}
-              disabled={isPending}
-            />
-            <Textarea
-              placeholder="Optional: Paste job description for context..."
-              className="min-h-[150px] font-mono text-sm"
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-              disabled={isPending}
-            />
+             <div>
+                <Label htmlFor="bullet-points">Bullet Points to Rewrite</Label>
+                <Textarea
+                id="bullet-points"
+                placeholder="Enter each bullet point on a new line..."
+                className="min-h-[150px] font-mono text-sm"
+                value={bulletPoints}
+                onChange={(e) => setBulletPoints(e.target.value)}
+                disabled={isPending}
+                />
+            </div>
+             <div>
+                <Label>Resume Context (Optional)</Label>
+                <ResumeInput
+                    value={resumeContext}
+                    onTextChange={setResumeContext}
+                    disabled={isPending}
+                    placeholder="Paste or upload your resume for context..."
+                    height="150px"
+                />
+            </div>
+            <div>
+                <Label htmlFor="job-description">Job Description (Optional)</Label>
+                <Textarea
+                id="job-description"
+                placeholder="Paste job description for context..."
+                className="min-h-[150px] font-mono text-sm"
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                disabled={isPending}
+                />
+            </div>
             <Button onClick={handleRewrite} disabled={isPending} className="w-full">
               {isPending ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
