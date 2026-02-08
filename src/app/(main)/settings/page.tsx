@@ -6,19 +6,19 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useTransition } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Moon, Sun, Laptop } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useFirebase, useUser } from '@/firebase';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { useTheme } from '@/providers/theme-provider';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const settingsSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
   email: z.string().email(),
   targetRole: z.string().optional(),
-  language: z.string().optional(),
   theme: z.enum(['light', 'dark', 'system']),
 });
 
@@ -29,6 +29,7 @@ export default function SettingsPage() {
     const [isPending, startTransition] = useTransition();
     const { firestore } = useFirebase();
     const { user } = useUser();
+    const { setTheme } = useTheme();
 
     const form = useForm<UserSettings>({
         resolver: zodResolver(settingsSchema),
@@ -36,7 +37,6 @@ export default function SettingsPage() {
             name: '',
             email: '',
             targetRole: '',
-            language: 'en-US',
             theme: 'system',
         },
     });
@@ -47,17 +47,18 @@ export default function SettingsPage() {
             getDoc(userRef).then(docSnap => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
+                    const theme = data.settings?.theme || 'system';
                     form.reset({
                         name: data.name || user.displayName || '',
                         email: data.email || user.email || '',
                         targetRole: data.settings?.targetRole || '',
-                        language: data.settings?.language || 'en-US',
-                        theme: data.settings?.theme || 'system',
+                        theme: theme,
                     });
+                    setTheme(theme);
                 }
             });
         }
-    }, [user, firestore, form]);
+    }, [user, firestore, form, setTheme]);
 
     function onSubmit(values: UserSettings) {
         if (!user || !firestore) return;
@@ -70,7 +71,6 @@ export default function SettingsPage() {
                     updatedAt: serverTimestamp(),
                     settings: {
                         targetRole: values.targetRole,
-                        language: values.language,
                         theme: values.theme,
                     }
                 }, { merge: true });
@@ -137,7 +137,7 @@ export default function SettingsPage() {
 
                 <Card>
                      <CardHeader>
-                        <CardTitle>Preferences</CardTitle>
+                        <CardTitle>Appearance</CardTitle>
                         <CardDescription>Tailor your experience for better AI results.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -159,27 +159,90 @@ export default function SettingsPage() {
                             control={form.control}
                             name="theme"
                             render={({ field }) => (
-                                <FormItem>
+                                <FormItem className="space-y-3">
                                 <FormLabel>Theme</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select a theme" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                    <SelectItem value="light">Light</SelectItem>
-                                    <SelectItem value="dark">Dark</SelectItem>
-                                    <SelectItem value="system">System</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormDescription>
-                                    Choose how CareerBoost AI looks.
-                                </FormDescription>
+                                <FormControl>
+                                    <RadioGroup
+                                    onValueChange={(value) => {
+                                        field.onChange(value);
+                                        setTheme(value as 'light' | 'dark' | 'system');
+                                    }}
+                                    defaultValue={field.value}
+                                    className="grid max-w-md grid-cols-3 gap-8 pt-2"
+                                    >
+                                    <FormItem>
+                                        <FormLabel className="[&:has([data-state=checked])>div]:border-primary">
+                                        <FormControl>
+                                            <RadioGroupItem value="light" className="sr-only" />
+                                        </FormControl>
+                                        <div className="items-center rounded-md border-2 border-muted p-1 hover:border-accent">
+                                            <div className="space-y-2 rounded-sm bg-[#ecedef] p-2">
+                                            <div className="space-y-2 rounded-md bg-white p-2 shadow-sm">
+                                                <div className="h-2 w-[80px] rounded-lg bg-[#ecedef]" />
+                                                <div className="h-2 w-[100px] rounded-lg bg-[#ecedef]" />
+                                            </div>
+                                            <div className="flex items-center space-x-2 rounded-md bg-white p-2 shadow-sm">
+                                                <div className="h-4 w-4 rounded-full bg-[#ecedef]" />
+                                                <div className="h-2 w-[100px] rounded-lg bg-[#ecedef]" />
+                                            </div>
+                                            <div className="flex items-center space-x-2 rounded-md bg-white p-2 shadow-sm">
+                                                <div className="h-4 w-4 rounded-full bg-[#ecedef]" />
+                                                <div className="h-2 w-[100px] rounded-lg bg-[#ecedef]" />
+                                            </div>
+                                            </div>
+                                        </div>
+                                        <span className="block w-full p-2 text-center font-normal">
+                                            Light
+                                        </span>
+                                        </FormLabel>
+                                    </FormItem>
+                                    <FormItem>
+                                        <FormLabel className="[&:has([data-state=checked])>div]:border-primary">
+                                        <FormControl>
+                                            <RadioGroupItem value="dark" className="sr-only" />
+                                        </FormControl>
+                                        <div className="items-center rounded-md border-2 border-muted bg-popover p-1 hover:border-accent">
+                                            <div className="space-y-2 rounded-sm bg-slate-950 p-2">
+                                            <div className="space-y-2 rounded-md bg-slate-800 p-2 shadow-sm">
+                                                <div className="h-2 w-[80px] rounded-lg bg-slate-400" />
+                                                <div className="h-2 w-[100px] rounded-lg bg-slate-400" />
+                                            </div>
+                                            <div className="flex items-center space-x-2 rounded-md bg-slate-800 p-2 shadow-sm">
+                                                <div className="h-4 w-4 rounded-full bg-slate-400" />
+                                                <div className="h-2 w-[100px] rounded-lg bg-slate-400" />
+                                            </div>
+                                            <div className="flex items-center space-x-2 rounded-md bg-slate-800 p-2 shadow-sm">
+                                                <div className="h-4 w-4 rounded-full bg-slate-400" />
+                                                <div className="h-2 w-[100px] rounded-lg bg-slate-400" />
+                                            </div>
+                                            </div>
+                                        </div>
+                                        <span className="block w-full p-2 text-center font-normal">
+                                            Dark
+                                        </span>
+                                        </FormLabel>
+                                    </FormItem>
+                                    <FormItem>
+                                        <FormLabel className="[&:has([data-state=checked])>div]:border-primary">
+                                        <FormControl>
+                                            <RadioGroupItem value="system" className="sr-only" />
+                                        </FormControl>
+                                        <div className="items-center rounded-md border-2 border-muted p-1 hover:border-accent">
+                                            <div className="flex h-[116px] items-center justify-center rounded-sm bg-muted">
+                                                <Laptop className="h-8 w-8 text-muted-foreground"/>
+                                            </div>
+                                        </div>
+                                        <span className="block w-full p-2 text-center font-normal">
+                                            System
+                                        </span>
+                                        </FormLabel>
+                                    </FormItem>
+                                    </RadioGroup>
+                                </FormControl>
                                 <FormMessage />
                                 </FormItem>
                             )}
-                        />
+                            />
                     </CardContent>
                 </Card>
 

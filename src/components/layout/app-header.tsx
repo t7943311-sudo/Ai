@@ -31,6 +31,7 @@ import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
+import { ThemeToggle } from '../theme-toggle';
 
 
 const navItems = [
@@ -96,6 +97,8 @@ export function AppHeader() {
       <div className="w-full flex-1">
         {/* Can be used for search or breadcrumbs later */}
       </div>
+
+      <ThemeToggle />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
