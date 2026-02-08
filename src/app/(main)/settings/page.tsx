@@ -54,11 +54,10 @@ export default function SettingsPage() {
                         targetRole: data.settings?.targetRole || '',
                         theme: theme,
                     });
-                    setTheme(theme);
                 }
             });
         }
-    }, [user, firestore, form, setTheme]);
+    }, [user, firestore, form]);
 
     function onSubmit(values: UserSettings) {
         if (!user || !firestore) return;
