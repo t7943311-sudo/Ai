@@ -3,6 +3,7 @@ import { Inter, Source_Code_Pro } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
+import { FirebaseClientProvider } from '@/firebase';
 
 const fontInter = Inter({
   subsets: ['latin'],
@@ -33,8 +34,10 @@ export default function RootLayout({
           fontSourceCodePro.variable
         )}
       >
-        {children}
-        <Toaster />
+        <FirebaseClientProvider>
+          {children}
+          <Toaster />
+        </FirebaseClientProvider>
       </body>
     </html>
   );

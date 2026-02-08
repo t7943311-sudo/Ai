@@ -4,30 +4,25 @@
 
 @layer base {
   :root {
-    --background: 0 0% 96.1%;
+    --background: 0 0% 96.1%; /* Very light grey */
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 231 48% 48%;
+    --primary: 236 52% 47%; /* Deep Indigo */
     --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 93%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 0 0% 93%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 231 41% 74%;
+    --accent: 236 34% 65%; /* Darker violet */
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 89.8%;
     --input: 0 0% 100%;
-    --ring: 231 48% 48%;
-    --chart-1: 231 48% 48%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --ring: 236 52% 47%;
     --radius: 0.5rem;
   }
   .dark {
@@ -37,24 +32,19 @@
     --card-foreground: 210 40% 98%;
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
-    --primary: 231 91% 77%;
-    --primary-foreground: 231 48% 28%;
+    --primary: 236 72% 77%;
+    --primary-foreground: 236 52% 27%;
     --secondary: 215 28% 17%;
     --secondary-foreground: 210 40% 98%;
     --muted: 215 28% 17%;
     --muted-foreground: 215 21% 65%;
-    --accent: 231 92% 82%;
-    --accent-foreground: 231 48% 28%;
+    --accent: 236 54% 55%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 215 28% 17%;
     --input: 215 28% 17%;
-    --ring: 231 91% 77%;
-    --chart-1: 231 91% 77%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --ring: 236 71% 77%;
   }
 }
 
@@ -64,5 +54,9 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-inter);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-inter);
   }
 }

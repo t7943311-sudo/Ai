@@ -45,5 +45,15 @@ service cloud.firestore {
         // History is immutable.
         allow update: if false;
     }
+
+    // Rules for support messages
+    match /supportMessages/{messageId} {
+      // A user can create their own support messages.
+      allow create: if isOwner(request.resource.data.userId);
+      // A user can only read their own support messages. (Admins would have broader access).
+      allow read: if isOwner(resource.data.userId);
+      // Messages are immutable.
+      allow update, delete: if false;
+    }
   }
 }
