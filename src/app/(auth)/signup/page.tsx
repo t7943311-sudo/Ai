@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -42,6 +43,7 @@ const formSchema = z.object({
   password: z
     .string()
     .min(6, { message: 'Password must be at least 6 characters.' }),
+  targetRole: z.string().optional(),
 });
 
 export default function SignupPage() {
@@ -56,6 +58,7 @@ export default function SignupPage() {
       name: '',
       email: '',
       password: '',
+      targetRole: '',
     },
   });
 
@@ -99,6 +102,7 @@ export default function SignupPage() {
           settings: {
             theme: 'system',
             onboardingCompleted: false,
+            targetRole: values.targetRole || '',
           }
         });
         
@@ -192,6 +196,24 @@ export default function SignupPage() {
                   <FormControl>
                     <Input type="password" {...field} disabled={isPending} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="targetRole"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Target Role (Optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., Software Engineer"
+                      {...field}
+                      disabled={isPending}
+                    />
+                  </FormControl>
+                  <FormDescription>This helps us tailor AI suggestions for you.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
