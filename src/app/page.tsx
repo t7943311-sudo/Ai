@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -143,19 +144,21 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-3 mt-12">
+            <div className="mx-auto grid max-w-5xl items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-3 mt-12">
               {features.map((feature, index) => {
                   const Icon = feature.icon;
                   return(
-                    <div key={index} className="grid gap-2">
-                        <div className="flex items-center gap-3">
-                            <div className="bg-primary/10 p-2 rounded-full">
-                                <Icon className="h-6 w-6 text-primary" />
+                    <Card key={index} className="flex flex-col">
+                        <CardHeader>
+                            <div className="bg-primary/10 p-3 rounded-full w-fit">
+                                <Icon className="h-8 w-8 text-primary" />
                             </div>
-                            <h3 className="text-lg font-bold">{feature.title}</h3>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{feature.description}</p>
-                    </div>
+                        </CardHeader>
+                        <CardContent className="flex-1">
+                            <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
+                            <p className="text-sm text-muted-foreground">{feature.description}</p>
+                        </CardContent>
+                    </Card>
                   )
               })}
             </div>
