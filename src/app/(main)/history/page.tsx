@@ -5,10 +5,9 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useFirebase, useUser, useCollection } from '@/firebase';
-import { collection, query, where, orderBy, type DocumentData, type Query } from 'firebase/firestore';
+import { collection, query, where, type DocumentData, type Query } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 type Activity = {
   id: string;
@@ -23,14 +22,26 @@ export default function HistoryPage() {
 
   const activitiesQuery = useMemo(() => {
       if (!firestore || !user) return null;
+      // The orderBy clause is removed to prevent the index error.
+      // Sorting will be handled on the client side as a workaround.
       return query(
           collection(firestore, 'activityHistory'),
-          where('userId', '==', user.uid),
-          orderBy('createdAt', 'desc')
+          where('userId', '==', user.uid)
       );
   }, [firestore, user]);
 
-  const { data: activities, loading } = useCollection<Activity>(activitiesQuery as Query<Activity> | null);
+  const { data, loading } = useCollection<Activity>(activitiesQuery as Query<Activity> | null);
+
+  const activities = useMemo(() => {
+    if (!data) return [];
+    // Sort activities by creation date on the client.
+    return [...data].sort((a, b) => {
+        const dateA = a.createdAt?.toDate?.().getTime() || 0;
+        const dateB = b.createdAt?.toDate?.().getTime() || 0;
+        return dateB - dateA;
+    });
+  }, [data]);
+
 
   const renderDetails = (activity: Activity) => {
     switch (activity.type) {
