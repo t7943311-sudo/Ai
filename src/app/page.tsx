@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Link from 'next/link';
@@ -120,7 +121,7 @@ export default function LandingPage() {
               </div>
                 <div className="flex items-center justify-center">
                     <Image
-                        src="https://i.ibb.co/W21x0p3/image.png"
+                        src="https://i.ibb.co/X0HkNZ1/Chat-GPT-Image-Feb-8-2026-01-53-45-PM.png"
                         width="600"
                         height="345"
                         alt="Screenshot of the CareerBoost AI dashboard showing resume analysis results"
