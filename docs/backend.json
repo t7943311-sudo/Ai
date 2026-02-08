@@ -15,7 +15,11 @@
           "properties": {
             "theme": { "type": "string", "enum": ["light", "dark", "system"], "description": "The user's preferred theme." },
             "targetRole": { "type": "string", "description": "The user's target job role for resume optimization." },
-            "language": { "type": "string", "description": "The user's preferred language." },
+            "language": {
+              "type": "string",
+              "description": "The user's preferred language.",
+              "enum": [ "en-US", "es-ES", "fr-FR", "de-DE" ]
+            },
             "onboardingCompleted": { "type": "boolean", "description": "Whether the user has completed the onboarding guide." }
           },
           "required": ["theme"]

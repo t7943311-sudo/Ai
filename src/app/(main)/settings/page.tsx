@@ -2,34 +2,59 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect, useTransition } from 'react';
+import { useEffect, useTransition, useState } from 'react';
 import { Loader2, Moon, Sun, Laptop } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useFirebase, useUser } from '@/firebase';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { updateProfile } from 'firebase/auth';
 import { useTheme } from '@/providers/theme-provider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { cn } from '@/lib/utils';
 
 const settingsSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
   email: z.string().email(),
   targetRole: z.string().optional(),
   theme: z.enum(['light', 'dark', 'system']),
+  language: z.string().optional(),
+  onboardingCompleted: z.boolean(),
 });
 
 type UserSettings = z.infer<typeof settingsSchema>;
 
+const languages = [
+    { value: 'en-US', label: 'English (United States)' },
+    { value: 'es-ES', label: 'Español (España)' },
+    { value: 'fr-FR', label: 'Français (France)' },
+    { value: 'de-DE', label: 'Deutsch (Deutschland)' },
+];
+
 export default function SettingsPage() {
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
-    const { firestore } = useFirebase();
+    const { firestore, auth } = useFirebase();
     const { user } = useUser();
     const { setTheme } = useTheme();
+    const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
     const form = useForm<UserSettings>({
         resolver: zodResolver(settingsSchema),
@@ -38,6 +63,8 @@ export default function SettingsPage() {
             email: '',
             targetRole: '',
             theme: 'system',
+            language: 'en-US',
+            onboardingCompleted: true,
         },
     });
 
@@ -47,30 +74,41 @@ export default function SettingsPage() {
             getDoc(userRef).then(docSnap => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    const theme = data.settings?.theme || 'system';
+                    const settings = data.settings || {};
                     form.reset({
                         name: data.name || user.displayName || '',
                         email: data.email || user.email || '',
-                        targetRole: data.settings?.targetRole || '',
-                        theme: theme,
+                        targetRole: settings.targetRole || '',
+                        theme: settings.theme || 'system',
+                        language: settings.language || 'en-US',
+                        onboardingCompleted: settings.onboardingCompleted !== false,
                     });
                 }
             });
         }
     }, [user, firestore, form]);
 
-    function onSubmit(values: UserSettings) {
-        if (!user || !firestore) return;
+    async function onSubmit(values: UserSettings) {
+        if (!user || !firestore || !auth) return;
         startTransition(async () => {
             try {
+                if (user.displayName !== values.name) {
+                    await updateProfile(user, { displayName: values.name });
+                }
+
                 const userRef = doc(firestore, 'users', user.uid);
+                const userDoc = await getDoc(userRef);
+                const existingSettings = userDoc.data()?.settings || {};
+
                 await setDoc(userRef, {
                     name: values.name,
-                    email: values.email,
                     updatedAt: serverTimestamp(),
                     settings: {
+                        ...existingSettings,
                         targetRole: values.targetRole,
                         theme: values.theme,
+                        language: values.language,
+                        onboardingCompleted: values.onboardingCompleted,
                     }
                 }, { merge: true });
 
@@ -79,12 +117,21 @@ export default function SettingsPage() {
                     description: 'Your profile settings have been updated.',
                 });
             } catch (error) {
+                console.error("Failed to save settings:", error);
                 toast({
                     title: 'Error',
                     description: 'Failed to save settings.',
                     variant: 'destructive',
                 });
             }
+        });
+    }
+
+     const handleDeleteAccount = () => {
+        toast({
+            title: 'Account Deletion (Not Implemented)',
+            description: 'This feature is not yet fully functional.',
+            variant: 'destructive'
         });
     }
 
@@ -136,10 +183,10 @@ export default function SettingsPage() {
 
                 <Card>
                      <CardHeader>
-                        <CardTitle>Appearance</CardTitle>
-                        <CardDescription>Tailor your experience for better AI results.</CardDescription>
+                        <CardTitle>Preferences</CardTitle>
+                        <CardDescription>Tailor your experience for better AI results and usability.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-6 pt-6">
                          <FormField
                             control={form.control}
                             name="targetRole"
@@ -156,17 +203,61 @@ export default function SettingsPage() {
                         />
                         <FormField
                             control={form.control}
+                            name="language"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Language</FormLabel>
+                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select a language" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {languages.map((lang) => (
+                                                <SelectItem key={lang.value} value={lang.value}>{lang.label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormDescription>Your preferred language for the interface.</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="onboardingCompleted"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                    <div className="space-y-0.5">
+                                        <FormLabel>Show Onboarding Guide</FormLabel>
+                                        <FormDescription>
+                                            See the welcome guide on the dashboard again.
+                                        </FormDescription>
+                                    </div>
+                                    <FormControl>
+                                        <Switch
+                                            checked={!field.value}
+                                            onCheckedChange={(checked) => field.onChange(!checked)}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
                             name="theme"
                             render={({ field }) => (
                                 <FormItem className="space-y-3">
                                 <FormLabel>Theme</FormLabel>
+                                <FormDescription>Select the theme for the dashboard.</FormDescription>
                                 <FormControl>
                                     <RadioGroup
                                     onValueChange={(value) => {
                                         field.onChange(value);
                                         setTheme(value as 'light' | 'dark' | 'system');
                                     }}
-                                    defaultValue={field.value}
+                                    value={field.value}
                                     className="grid max-w-md grid-cols-3 gap-8 pt-2"
                                     >
                                     <FormItem>
@@ -257,12 +348,40 @@ export default function SettingsPage() {
         <Card className="border-destructive max-w-2xl">
             <CardHeader>
                 <CardTitle className="text-destructive">Danger Zone</CardTitle>
-                <CardDescription>These actions are permanent and cannot be undone.</CardDescription>
+                <CardDescription>This action is permanent and cannot be undone.</CardDescription>
             </CardHeader>
             <CardContent>
-                <Button variant="destructive" onClick={() => alert("This would trigger a delete confirmation modal.")}>
-                    Delete My Account
-                </Button>
+                 <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive">Delete My Account</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete your account
+                                and remove your data from our servers. To confirm, please type
+                                <strong className="font-bold text-foreground mx-1">DELETE</strong> below.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                         <Input
+                            value={deleteConfirmText}
+                            onChange={(e) => setDeleteConfirmText(e.target.value)}
+                            placeholder="DELETE"
+                            className="my-2"
+                        />
+                        <AlertDialogFooter>
+                            <AlertDialogCancel onClick={() => setDeleteConfirmText('')}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={handleDeleteAccount}
+                                disabled={deleteConfirmText !== 'DELETE'}
+                                className={cn(buttonVariants({ variant: "destructive" }))}
+                            >
+                                Continue
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </CardContent>
         </Card>
 
