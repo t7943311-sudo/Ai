@@ -20,14 +20,12 @@ function initializeFirebase(): {
     messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   };
-
-  if (getApps().length) {
-    const app = getApp();
-    const auth = getAuth(app);
-    const firestore = getFirestore(app);
-    return { app, auth, firestore };
+  
+  if (!firebaseConfig.apiKey) {
+    throw new Error('Firebase API key is not configured. Please check your NEXT_PUBLIC_FIREBASE_API_KEY environment variable.');
   }
-  const app = initializeApp(firebaseConfig);
+
+  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const firestore = getFirestore(app);
 

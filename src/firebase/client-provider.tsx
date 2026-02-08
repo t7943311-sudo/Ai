@@ -5,20 +5,38 @@ import { initializeFirebase } from '.';
 import { FirebaseProvider } from './provider';
 import type { FirebaseContextValue } from './provider';
 import { Loader2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export function FirebaseClientProvider({ children }: { children: ReactNode }) {
   const [firebaseContext, setFirebaseContext] = useState<FirebaseContextValue | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // This effect runs only on the client, after the initial server render.
-    // This ensures that Firebase is initialized in the browser environment
-    // where the `NEXT_PUBLIC_` environment variables are available.
-    setFirebaseContext(initializeFirebase());
-  }, []); // The empty dependency array ensures this runs only once.
+    try {
+      setFirebaseContext(initializeFirebase());
+    } catch (e: any) {
+      console.error("Firebase initialization failed:", e);
+      setError(e.message || 'An unknown error occurred during Firebase initialization.');
+    }
+  }, []); 
+
+  if (error) {
+    return (
+       <div className="flex min-h-screen items-center justify-center bg-background p-4">
+          <Alert variant="destructive" className="max-w-lg">
+            <AlertTitle>Application Configuration Error</AlertTitle>
+            <AlertDescription>
+              Could not connect to backend services. This is likely a missing configuration in your environment.
+              <p className="mt-2 text-xs font-mono bg-muted p-2 rounded">
+                <strong>Error details:</strong> {error}
+              </p>
+            </AlertDescription>
+          </Alert>
+       </div>
+    );
+  }
 
   if (!firebaseContext) {
-    // Render a loading indicator while Firebase is initializing.
-    // This prevents children from attempting to use Firebase before it's ready.
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
