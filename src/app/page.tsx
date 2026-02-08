@@ -120,12 +120,12 @@ export default function LandingPage() {
               </div>
                 <div className="flex items-center justify-center">
                     <Image
-                        src="https://picsum.photos/seed/career-hero-2/600/500"
+                        src="https://i.ibb.co/W21x0p3/image.png"
                         width="600"
-                        height="500"
-                        alt="A modern, professional resume being analyzed on a screen"
-                        className="mx-auto aspect-[6/5] overflow-hidden rounded-xl object-cover"
-                        data-ai-hint="resume analysis tech"
+                        height="345"
+                        alt="Screenshot of the CareerBoost AI dashboard showing resume analysis results"
+                        className="mx-auto overflow-hidden rounded-xl object-cover"
+                        data-ai-hint="app dashboard"
                     />
                 </div>
             </div>
