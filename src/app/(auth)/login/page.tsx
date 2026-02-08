@@ -4,11 +4,7 @@ import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import {
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-} from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useFirebase } from '@/firebase';
 import { getAuthErrorMessage } from '@/lib/firebase-error-handler';
 
@@ -34,7 +30,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, ChromeIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
+import { processGoogleSignIn } from '@/lib/auth-helpers';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -59,42 +56,7 @@ export default function LoginPage() {
     startTransition(async () => {
       if (!auth || !firestore) return;
       try {
-        const provider = new GoogleAuthProvider();
-        const userCredential = await signInWithPopup(auth, provider);
-        const user = userCredential.user;
-
-        const userRef = doc(firestore, 'users', user.uid);
-        const docSnap = await getDoc(userRef);
-
-        if (docSnap.exists() && docSnap.data()?.settings?.theme) {
-          localStorage.setItem('theme', docSnap.data().settings.theme);
-          await setDoc(
-            userRef,
-            {
-              name: user.displayName,
-              email: user.email,
-              updatedAt: serverTimestamp(),
-            },
-            { merge: true }
-          );
-        } else {
-          localStorage.setItem('theme', 'system');
-          await setDoc(
-            userRef,
-            {
-              name: user.displayName,
-              email: user.email,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp(),
-              settings: {
-                theme: 'system',
-                onboardingCompleted: false,
-              },
-            },
-            { merge: true }
-          );
-        }
-
+        await processGoogleSignIn(auth, firestore);
         router.push('/dashboard');
       } catch (error) {
         toast({
