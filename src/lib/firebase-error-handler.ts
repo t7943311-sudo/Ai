@@ -16,6 +16,7 @@ const AUTH_ERROR_MESSAGES: { [key: string]: string } = {
   'auth/cancelled-popup-request': 'The sign-in process was cancelled. Only one sign-in request can be made at a time.',
   'auth/popup-blocked': 'The sign-in popup was blocked by your browser. Please allow popups for this site and try again.',
   'auth/operation-not-allowed': 'Sign-in with this method is not enabled. Please contact support.',
+  'auth/unauthorized-domain': 'This domain is not authorized for authentication. Please add it to the list of authorized domains in your Firebase project settings.',
 };
 
 const DEFAULT_AUTH_ERROR =
