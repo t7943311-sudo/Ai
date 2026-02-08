@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/table';
 import { ScoreHistoryChart } from '@/components/dashboard/score-history-chart';
 import { useCollection, useFirebase, useUser } from '@/firebase';
-import { collection, query, where, orderBy, limit, type Query } from 'firebase/firestore';
+import { collection, query, where, type Query } from 'firebase/firestore';
 import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -53,26 +53,39 @@ export default function DashboardPage() {
 
     const activitiesQuery = useMemo(() => {
         if (!firestore || !user) return null;
+        // orderby removed to prevent index error, will sort on client
         return query(
             collection(firestore, 'activityHistory'),
-            where('userId', '==', user.uid),
-            orderBy('createdAt', 'desc'),
-            limit(5)
+            where('userId', '==', user.uid)
         );
     }, [firestore, user]);
 
     const analysesQuery = useMemo(() => {
         if (!firestore || !user) return null;
+        // orderby removed to prevent index error, will sort on client
         return query(
             collection(firestore, 'resumeAnalyses'),
-            where('userId', '==', user.uid),
-            orderBy('createdAt', 'desc'),
-            limit(7) // For the chart and stats
+            where('userId', '==', user.uid)
         );
     }, [firestore, user]);
 
-    const { data: activities, loading: activitiesLoading } = useCollection<ActivityDoc>(activitiesQuery as Query<ActivityDoc> | null);
-    const { data: analyses, loading: analysesLoading } = useCollection<ResumeAnalysisDoc>(analysesQuery as Query<ResumeAnalysisDoc> | null);
+    const { data: allActivities, loading: activitiesLoading } = useCollection<ActivityDoc>(activitiesQuery as Query<ActivityDoc> | null);
+    const { data: allAnalyses, loading: analysesLoading } = useCollection<ResumeAnalysisDoc>(analysesQuery as Query<ResumeAnalysisDoc> | null);
+
+    const activities = useMemo(() => {
+        if (!allActivities) return null;
+        return [...allActivities]
+            .sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime())
+            .slice(0, 5);
+    }, [allActivities]);
+
+    const analyses = useMemo(() => {
+        if (!allAnalyses) return null;
+        return [...allAnalyses]
+            .sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime())
+            .slice(0, 7);
+    }, [allAnalyses]);
+
 
     const loading = activitiesLoading || analysesLoading;
 
