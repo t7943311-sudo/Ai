@@ -1,9 +1,12 @@
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AppLogo } from '@/components/icons';
-import { Card, CardContent } from '@/components/ui/card';
-import { FileScan, GitCompareArrows, PenSquare, GaugeCircle, Wand2, ShieldCheck, Star } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { FileScan, GitCompareArrows, PenSquare, GaugeCircle, Wand2, ShieldCheck, Star, Loader2 } from 'lucide-react';
 import Image from 'next/image';
+import { useUser } from '@/firebase';
 
 const features = [
   {
@@ -56,6 +59,8 @@ const testimonials = [
 ]
 
 export default function LandingPage() {
+  const { user, loading } = useUser();
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="px-4 lg:px-6 h-14 flex items-center bg-background/80 backdrop-blur-sm sticky top-0 z-50 border-b">
@@ -64,12 +69,22 @@ export default function LandingPage() {
           <span className="ml-2 text-lg font-semibold">CareerBoost AI</span>
         </Link>
         <nav className="ml-auto flex items-center gap-4 sm:gap-6">
-          <Link href="/login" prefetch={false}>
-            <Button variant="ghost">Login</Button>
-          </Link>
-          <Link href="/signup" prefetch={false}>
-            <Button>Get Started Free</Button>
-          </Link>
+          {loading ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : user ? (
+            <Link href="/dashboard" prefetch={false}>
+              <Button>Go to Dashboard</Button>
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" prefetch={false}>
+                <Button variant="ghost">Login</Button>
+              </Link>
+              <Link href="/signup" prefetch={false}>
+                <Button>Get Started Free</Button>
+              </Link>
+            </>
+          )}
         </nav>
       </header>
       <main className="flex-1">
@@ -147,8 +162,46 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Testimonials Section */}
+        {/* See the Transformation Section */}
         <section className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">See the Transformation</h2>
+                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                  Our AI doesn't just give advice. It rewrites and refines your content for maximum impact.
+                </p>
+              </div>
+            </div>
+            <div className="mx-auto grid max-w-4xl items-start gap-8 py-12 md:grid-cols-2 md:gap-12">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Before</CardTitle>
+                  <CardDescription>A standard resume bullet point.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground italic">
+                    &quot;Responsible for managing social media accounts.&quot;
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="border-primary/50 bg-primary/5">
+                <CardHeader>
+                  <CardTitle>After CareerBoost AI</CardTitle>
+                  <CardDescription>An impact-driven, quantified achievement.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm font-semibold">
+                    &quot;Grew social media engagement by 45% across three platforms in six months by implementing a data-driven content strategy.&quot;
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials Section */}
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/40">
           <div className="container px-4 md:px-6">
              <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
