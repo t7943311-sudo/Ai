@@ -63,12 +63,12 @@ export default function MatchJobPage() {
             createdAt: serverTimestamp(),
         });
 
-      } catch (error) {
+      } catch (error: any) {
         console.error('Match failed:', error);
         toast({
           title: 'Match Failed',
           description:
-            'Something went wrong. Please check your connection and try again.',
+            error.message || 'Something went wrong. Please check your connection and try again.',
           variant: 'destructive',
         });
       }

@@ -68,12 +68,12 @@ export function InteractiveAnalyzer() {
             localStorage.setItem(STORAGE_KEY, newCount.toString());
         }
 
-      } catch (error) {
+      } catch (error: any) {
         console.error('Analysis failed:', error);
         toast({
           title: 'Analysis Failed',
           description:
-            'Something went wrong. Please check your connection and try again.',
+            error.message || 'Something went wrong. Please check your connection and try again.',
           variant: 'destructive',
         });
       }

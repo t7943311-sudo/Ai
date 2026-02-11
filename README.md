@@ -2,8 +2,6 @@
 
 CareerBoost AI is a Next.js web application designed to help job seekers optimize their resumes and improve their chances of landing their dream job. It leverages AI to provide data-driven feedback, match resumes to job descriptions, and rewrite content for maximum impact.
 
-![CareerBoost AI Screenshot](https://i.ibb.co/W21x0p3/image.png)
-
 ## ✨ Features
 
 -   **🤖 AI-Powered Resume Analysis**: Get an instant, in-depth review of your resume, including an ATS (Applicant Tracking System) score, keyword analysis, and formatting suggestions.

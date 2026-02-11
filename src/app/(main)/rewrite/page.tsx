@@ -59,12 +59,12 @@ export default function RewritePage() {
             createdAt: serverTimestamp(),
         });
 
-      } catch (error) {
+      } catch (error: any) {
         console.error('Rewrite failed:', error);
         toast({
           title: 'Rewrite Failed',
           description:
-            'Something went wrong. Please check your connection and try again.',
+            error.message || 'Something went wrong. Please check your connection and try again.',
           variant: 'destructive',
         });
       }
