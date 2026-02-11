@@ -1,11 +1,30 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { initializeFirebase } from '.';
+import { initializeApp, getApp, getApps, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
+import { firebaseConfig } from './config';
 import { FirebaseProvider } from './provider';
 import type { FirebaseContextValue } from './provider';
 import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+function initializeFirebase(): {
+  app: FirebaseApp;
+  auth: Auth;
+  firestore: Firestore;
+} {
+  if (!firebaseConfig.apiKey) {
+    throw new Error('Firebase configuration is missing or incomplete. Please update the placeholder values in src/firebase/config.ts');
+  }
+
+  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const firestore = getFirestore(app);
+
+  return { app, auth, firestore };
+}
 
 export function FirebaseClientProvider({ children }: { children: ReactNode }) {
   const [firebaseContext, setFirebaseContext] = useState<FirebaseContextValue | null>(null);
