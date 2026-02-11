@@ -25,6 +25,9 @@ const RewriteBulletPointsOutputSchema = z.object({
 export type RewriteBulletPointsOutput = z.infer<typeof RewriteBulletPointsOutputSchema>;
 
 export async function rewriteBulletPointsForImpact(input: RewriteBulletPointsInput): Promise<RewriteBulletPointsOutput> {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('The AI service is not configured. Please set the GEMINI_API_KEY environment variable on your server.');
+  }
   return rewriteBulletPointsFlow(input);
 }
 

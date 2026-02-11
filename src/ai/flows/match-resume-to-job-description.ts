@@ -25,6 +25,9 @@ const MatchResumeToJobDescriptionOutputSchema = z.object({
 export type MatchResumeToJobDescriptionOutput = z.infer<typeof MatchResumeToJobDescriptionOutputSchema>;
 
 export async function matchResumeToJobDescription(input: MatchResumeToJobDescriptionInput): Promise<MatchResumeToJobDescriptionOutput> {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('The AI service is not configured. Please set the GEMINI_API_KEY environment variable on your server.');
+  }
   return matchResumeToJobDescriptionFlow(input);
 }
 

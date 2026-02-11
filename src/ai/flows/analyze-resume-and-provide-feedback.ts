@@ -29,6 +29,9 @@ const AnalyzeResumeAndProvideFeedbackOutputSchema = z.object({
 export type AnalyzeResumeAndProvideFeedbackOutput = z.infer<typeof AnalyzeResumeAndProvideFeedbackOutputSchema>;
 
 export async function analyzeResumeAndProvideFeedback(input: AnalyzeResumeAndProvideFeedbackInput): Promise<AnalyzeResumeAndProvideFeedbackOutput> {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('The AI service is not configured. Please set the GEMINI_API_KEY environment variable on your server.');
+  }
   return analyzeResumeAndProvideFeedbackFlow(input);
 }
 
